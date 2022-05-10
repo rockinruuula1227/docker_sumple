@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  php:
+    build:
+      context: ./dev/docker/config
+      dockerfile: dockerfile
+    volumes:
+      - ./dev/docker/config/php.ini:/usr/local/etc/php/php.ini
+      - ./dev/docker/config/000-default.conf:/etc/apache2/sites-available/000-default.conf
+      - ./dist/www/html:/var/www/html
+      - ./dist/log:/var/log
+    ports:
+      - 8001:80
+    tty: true
+    stdin_open: true
+    links:
+      - mysql
+  mysql:
+    platform: linux/amd64 # M1チップ対応のため追記
+    image: mysql:5.7
+    volumes:
+      - ./dev/docker/mysql:/var/lib/mysql
+    ports:
+      - 13301:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=test
+  phpmyadmin:
+    image: phpmyadmin
+    volumes:
+      - ./dev/docker/phpmyadmin/sessions:/sessions
+    ports:
+      - 4001:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=test
+      - PMA_PASSWORD=test
+    links:
+      - mysql
